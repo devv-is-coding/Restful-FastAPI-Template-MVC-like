@@ -34,7 +34,12 @@ class UserService:
         user = await self.user_repo.create(
             email=user_data.email,
             username=user_data.username,
-            full_name=user_data.full_name,
+            first_name=user_data.first_name,
+            last_name=user_data.last_name,
+            middle_name=user_data.middle_name,
+            phone_number=user_data.phone_number,
+            phone_number2=user_data.phone_number2,
+            role_id=user_data.role_id,
             hashed_password=hashed_password,
         )
 

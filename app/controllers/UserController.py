@@ -4,7 +4,7 @@ from typing import List
 from config.database import get_db
 from app.services.UserService import UserService
 from app.schemas.user_schema import UserCreate, UserUpdate, UserResponse
-from app.utils.dependencies import get_current_user, get_current_superuser
+from app.utils.dependencies import get_current_user, get_current_admin
 from app.models.User import User
 
 
@@ -13,7 +13,7 @@ class UserController:
     async def create_user(
         user_data: UserCreate, db: AsyncSession = Depends(get_db)
     ) -> UserResponse:
-        """Create a new user"""
+        """Register a new user"""
         user_service = UserService(db)
         return await user_service.create_user(user_data)
 
@@ -32,7 +32,7 @@ class UserController:
         skip: int = 0,
         limit: int = 100,
         db: AsyncSession = Depends(get_db),
-        current_user: User = Depends(get_current_superuser),
+        current_user: User = Depends(get_current_admin),
     ) -> List[UserResponse]:
         """Get all users (superuser only)"""
         user_service = UserService(db)
@@ -46,12 +46,6 @@ class UserController:
         current_user: User = Depends(get_current_user),
     ) -> UserResponse:
         """Update user"""
-        # Users can only update their own data unless they're superuser
-        if user_id != current_user.id and not current_user.is_superuser:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
-            )
-
         user_service = UserService(db)
         return await user_service.update_user(user_id, user_data)
 
@@ -59,7 +53,7 @@ class UserController:
     async def delete_user(
         user_id: int,
         db: AsyncSession = Depends(get_db),
-        current_user: User = Depends(get_current_superuser),
+        current_user: User = Depends(get_current_admin),
     ) -> dict:
         """Delete user (superuser only)"""
         user_service = UserService(db)

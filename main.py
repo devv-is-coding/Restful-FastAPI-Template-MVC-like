@@ -1,8 +1,19 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+
+from app.models import User, Role
 
 from app.routes import auth_routes, user_routes, firebase_routes
 from app.middleware.cors import setup_cors
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from app.exceptions.handlers import (
+    validation_exception_handler,
+    sqlalchemy_exception_handler,
+    integrity_exception_handler,
+    general_exception_handler,
+)
+
 # Uncomment when Firebase is configured:
 # from app.utils.firebase_auth import initialize_firebase
 
@@ -14,6 +25,12 @@ app = FastAPI(
 
 # Setup CORS middleware
 setup_cors(app)
+
+# Register exception handlers
+app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore
+app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)  # type: ignore
+app.add_exception_handler(IntegrityError, integrity_exception_handler)  # type: ignore
+app.add_exception_handler(Exception, general_exception_handler)  # type: ignore
 
 # Register routers
 app.include_router(auth_routes.router, prefix="/api")
